@@ -1,0 +1,11 @@
+[general]
+title = "AI 智能团队协作系统"
+
+[theme]
+primaryColor = "#667eea"
+backgroundColor = "#1a1a2e"
+secondaryBackgroundColor = "#16213e"
+textColor = "#ffffff"
+
+[server]
+headless = true
