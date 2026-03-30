@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>AI项目圆桌讨论</title>
+ <style>
+ * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Microsoft YaHei", Arial, sans-serif; }
+ body { background: #1a1d24; color: #fff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 15px; }
+ .title { font-size: 32px; margin: 20px 0; color: #00f5d4; text-align: center; }
+ .control-bar { width: 100%; max-width: 900px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 15px; }
+ .topic-input { flex: 1; min-width: 250px; padding: 12px; font-size: 16px; background: rgba(30,34,44,0.98); border: 2px solid #00f5d4; border-radius: 10px; color: #fff; outline: none; }
+ .round-select { padding: 12px; font-size: 16px; background: rgba(30,34,44,0.98); border: 2px solid #00f5d4; border-radius: 10px; color: #fff; cursor: pointer; }
+ .file-section { width: 100%; max-width: 900px; background: rgba(30,34,44,0.9); border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 2px solid #00f5d4; }
+ .folder-input-row { display: flex; gap: 10px; margin-bottom: 12px; }
+ .folder-input { flex: 1; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid #00f5d4; border-radius: 8px; color: #fff; font-size: 14px; }
+ .folder-btn { padding: 10px 15px; background: #00f5d4; border: none; border-radius: 8px; color: #000; font-weight: bold; cursor: pointer; }
+ .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; max-height: 200px; overflow-y: auto; }
+ .file-card { background: rgba(0,245,212,0.1); border: 1px solid rgba(0,245,212,0.3); border-radius: 8px; padding: 10px; }
+ .file-name { font-size: 13px; font-weight: bold; color: #fff; }
+ .selected-info { margin-top: 10px; padding: 10px; background: rgba(0,245,212,0.2); border-radius: 8px; font-size: 13px; color: #00f5d4; }
+ .round-table { position: relative; width: 480px; height: 480px; margin: 0 auto 30px; }
+ .table-core { width: 240px; height: 240px; background: linear-gradient(45deg, #8B4513, #A0522D); border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; color: #fff; text-align: center; padding: 15px; line-height: 1.5; }
+ .ai-avatar { width: 90px; height: 90px; border-radius: 50%; position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 36px; cursor: pointer; transition: all 0.4s; box-shadow: 0 8px 25px rgba(0,0,0,0.5); border: 4px solid #fff; }
+ .ai-name-tag { position: absolute; bottom: -28px; font-size: 10px; background: rgba(0,0,0,0.7); padding: 3px 8px; border-radius: 4px; color: #fff; font-weight: bold; text-align: center; }
+ .ai-api-name { position: absolute; top: -22px; font-size: 9px; background: rgba(0,245,212,0.8); padding: 2px 6px; border-radius: 4px; color: #000; font-weight: bold; }
+ .ai-avatar:hover { transform: scale(1.1); border-color: #00f5d4; }
+ .ai1 { top: 5%; left: 50%; transform: translate(-50%, -50%); background: #ff4757; }
+ .ai2 { top: 25%; right: 8%; background: #3742fa; }
+ .ai3 { top: 60%; right: 5%; background: #ffa502; }
+ .ai4 { bottom: 5%; left: 50%; transform: translate(-50%, 50%); background: #a55eea; }
+ .ai5 { top: 25%; left: 8%; background: #00f5d4; }
+ .ai-avatar.speaking { transform: scale(1.5) translateY(-25px) rotate(8deg) !important; animation: shake 0.5s infinite alternate; z-index: 99; border-color: #fff !important; box-shadow: 0 0 40px currentColor; }
+ @keyframes shake { 0% { transform: scale(1.5) translateY(-25px) rotate(5deg); } 100% { transform: scale(1.5) translateY(-25px) rotate(-5deg); } }
+ .chat-box { width: 100%; max-width: 900px; background: rgba(30,34,44,0.98); border-radius: 20px; padding: 20px; height: 300px; overflow-y: auto; border: 3px solid #00f5d4; margin-bottom: 20px; }
+ .message { margin-bottom: 12px; padding: 10px 16px; border-radius: 12px; max-width: 88%; animation: fadeIn 0.4s ease; line-height: 1.6; font-size: 14px; white-space: pre-wrap; }
+ @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+ .speak { background: linear-gradient(135deg, #00a8ff, #0066cc); color: #fff; font-weight: 500; margin-right: 8px; margin-left: auto; }
+ .ai-tag { font-size: 13px; margin-bottom: 4px; color: #00f5d4; font-weight: bold; }
+ .chat-box::-webkit-scrollbar { width: 8px; }
+ .chat-box::-webkit-scrollbar-thumb { background: #00f5d4; border-radius: 10px; }
+ .control-panel { width: 100%; max-width: 900px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 18px; background: rgba(30,34,44,0.98); border-radius: 20px; border: 2px solid #00f5d4; }
+ .test-btn { padding: 8px 14px; font-size: 13px; border-radius: 8px; border: none; cursor: pointer; color: #fff; font-weight: bold; transition: 0.3s; }
+ .test-btn:hover { transform: scale(1.05); }
+ .test-btn.testing { opacity: 0.7; }
+ .test-btn.success { background: #2ed573 !important; }
+ .test-btn.error { background: #ff4757 !important; }
+ .btn1 { background: #ff4757; } .btn2 { background: #3742fa; } .btn3 { background: #ffa502; } .btn4 { background: #a55eea; } .btn5 { background: #00f5d4; }
+ .btn-start { background: linear-gradient(135deg, #0fc076, #00a8ff); padding: 12px 24px; font-size: 15px; }
+ .btn-stop { background: #e55; }
+ .btn-clear { background: #6c5ce7; }
+ .btn-ctrl { padding: 10px 16px; font-size: 14px; border-radius: 10px; border: none; cursor: pointer; color: #fff; font-weight: bold; transition: 0.3s; }
+ .btn-ctrl:hover { transform: scale(1.05); }
+ .btn-ctrl:disabled { opacity: 0.5; cursor: not-allowed; }
+ </style>
+</head>
+
+<body>
+ <h1 class="title">💡 AI圆桌讨论会</h1>
+
+ <div class="file-section">
+ <div class="folder-input-row">
+ <input type="text" class="folder-input" id="folderPath" placeholder="输入项目路径，如：D:\dingcan" value="D:\dingcan">
+ <button class="folder-btn" onclick="loadFolder()">📂 加载文件</button>
+ </div>
+ <div class="file-grid" id="fileGrid"><div style="color:rgba(255,255,255,0.5);font-size:13px;text-align:center;padding:20px;">点击加载文件</div></div>
+ <div class="selected-info" id="selectedInfo">已选择 0 个文件</div>
+ </div>
+
+ <div class="control-bar">
+ <input type="text" class="topic-input" id="topicInput" placeholder="输入分析任务">
+ <select class="round-select" id="roundSelect"><option value="3">3轮</option><option value="5" selected>5轮</option><option value="10">10轮</option></select>
+ <button class="btn-ctrl btn-start" id="startBtn" onclick="startDiscussion()">🚀 开始讨论</button>
+ </div>
+
+ <div class="round-table">
+ <div class="table-core" id="tableCenter">AI圆桌讨论<br>等待开始</div>
+ <div class="ai-avatar ai1" data-role="1"><span class="ai-api-name">🎯 豆包</span>🎯<span class="ai-name-tag">产品经理</span></div>
+ <div class="ai-avatar ai2" data-role="2"><span class="ai-api-name">💻 通义</span>💻<span class="ai-name-tag">全栈工程师</span></div>
+ <div class="ai-avatar ai3" data-role="3"><span class="ai-api-name">🏗️ DeepSeek</span>🏗️<span class="ai-name-tag">架构师</span></div>
+ <div class="ai-avatar ai4" data-role="4"><span class="ai-api-name">🧠 DeepSeek-2</span>🧠<span class="ai-name-tag">项目经理</span></div>
+ <div class="ai-avatar ai5" data-role="5"><span class="ai-api-name">🤖 Claude</span>🤖<span class="ai-name-tag">代码审计师</span></div>
+ </div>
+
+ <div class="chat-box" id="chatBox"></div>
+
+ <div class="control-panel">
+ <button class="test-btn btn1" onclick="testAI(1)">🔍 豆包</button>
+ <button class="test-btn btn2" onclick="testAI(2)">🔍 通义</button>
+ <button class="test-btn btn3" onclick="testAI(3)">🔍 DeepSeek</button>
+ <button class="test-btn btn4" onclick="testAI(4)">🔍 DeepSeek-2</button>
+ <button class="test-btn btn5" onclick="testAI(5)">🔍 Claude</button>
+ <button class="btn-ctrl btn-stop" onclick="stopAll()">⏹ 停止</button>
+ <button class="btn-ctrl btn-clear" onclick="clearChat()">🗑 清空</button>
+ </div>
+
+ <script>
+ const chatBox = document.getElementById('chatBox');
+ const avatars = document.querySelectorAll('.ai-avatar');
+ const tableCenter = document.getElementById('tableCenter');
+ const startBtn = document.getElementById('startBtn');
+ const fileGrid = document.getElementById('fileGrid');
+ const selectedInfo = document.getElementById('selectedInfo');
+ let currentSpeaker = null, isRunning = false, currentRound = 0, discussionHistory = [], allFilesData = [];
+
+ // 5个AI配置
+ const AI_CONFIG = {
+ 1: { name: "豆包", role: "产品经理", duty: "产品需求分析、用户体验设计、功能优先级、用户痛点", apiKey: "167135a1-e637-4e1e-973d-641cda710c34", endpoint: "https://ark.cn-beijing.volces.com/api/v3/responses", model: "doubao-seed-1-8-251228", apiType: "responses", color: "#ff4757" },
+ 2: { name: "通义千问", role: "全栈工程师", duty: "代码实现、API设计、数据库架构、技术选型", apiKey: "sk-dfc23389f69a41c2a8e2247cd1507082", endpoint: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions", model: "qwen-plus", color: "#3742fa" },
+ 3: { name: "DeepSeek", role: "架构师", duty: "系统架构设计、性能优化、技术债务评估、扩展性", apiKey: "sk-b4c53f1462cf4b11beaf6f9fd745d1ff", endpoint: "https://api.deepseek.com/v1/chat/completions", model: "deepseek-chat", color: "#ffa502" },
+ 4: { name: "DeepSeek-2", role: "项目经理", duty: "项目规划、进度把控、资源协调、风险管控", apiKey: "sk-b4c53f1462cf4b11beaf6f9fd745d1ff", endpoint: "https://api.deepseek.com/v1/chat/completions", model: "deepseek-chat", color: "#a55eea" },
+ 5: { name: "Claude", role: "代码审计师", duty: "代码审查、Bug发现、安全漏洞检测、性能问题", apiKey: "sk-b4c53f1462cf4b11beaf6f9fd745d1ff", endpoint: "https://api.deepseek.com/v1/chat/completions", model: "deepseek-chat", color: "#00f5d4" }
+ };
+
+ async function loadFolder() {
+ const folderPath = document.getElementById('folderPath').value.trim();
+ if (!folderPath) return;
+ const btn = event.target;
+ btn.textContent = "⏳ 加载中...";
+ btn.disabled = true;
+ fileGrid.innerHTML = '<div style="color:#00f5d4;text-align:center;padding:20px">正在读取...</div>';
+ try {
+ const response = await fetch(`http://localhost:8530/list_files?path=${encodeURIComponent(folderPath)}`);
+ const data = await response.json();
+ if (data.files && data.files.length > 0) {
+ allFilesData = [];
+ for (let i = 0; i < Math.min(data.files.length, 25); i++) {
+ try {
+ const f = data.files[i];
+ const fileResponse = await fetch(`http://localhost:8530/read_file?path=${encodeURIComponent(f.path)}`);
+ const fileData = await fileResponse.json();
+ if (fileData.content) allFilesData.push({ name: f.name, content: fileData.content });
+ } catch(e) {}
+ if (i % 5 === 0) fileGrid.innerHTML = `<div style="color:#00f5d4;text-align:center;padding:20px">读取中... ${i+1}/${Math.min(data.files.length, 25)}</div>`;
+ await new Promise(r => setTimeout(r, 30));
+ }
+ fileGrid.innerHTML = allFilesData.map(f => `<div class="file-card"><span style="font-size:20px">📄</span><div class="file-name">${f.name}</div></div>`).join('');
+ selectedInfo.textContent = `已加载 ${allFilesData.length} 个文件`;
+ addMessage("系统", `✅ 已加载 ${allFilesData.length} 个文件`, "think");
+ } else {
+ fileGrid.innerHTML = '<div style="color:rgba(255,255,255,0.5);text-align:center;padding:20px">未找到文件</div>';
+ }
+ } catch (e) { fileGrid.innerHTML = '<div style="color:#ff4757;text-align:center;padding:20px">加载失败</div>'; }
+ btn.textContent = "📂 加载文件";
+ btn.disabled = false;
+ }
+
+ async function getAIResponse(config, prompt) {
+ const headers = { "Authorization": `Bearer ${config.apiKey}`, "Content-Type": "application/json" };
+ let data = config.apiType === "responses" 
+ ? { model: config.model, input: [{ role: "user", content: [{ type: "input_text", text: prompt }] }] }
+ : { model: config.model, messages: [{ role: "user", content: prompt }] };
+ const response = await fetch(config.endpoint, { method: "POST", headers, body: JSON.stringify(data), signal: AbortSignal.timeout(120000) });
+ if (response.ok) {
+ const result = await response.json();
+ if (config.apiType === "responses") {
+ for (const out of result.output || []) {
+ if (out.type === "message" && out.content) {
+ for (const c of out.content) {
+ if (c.type === "output_text") return c.text;
+ }
+ }
+ }
+ }
+ return result.choices?.[0]?.message?.content || null;
+ }
+ return null;
+ }
+
+ async function testAI(roleId) {
+ const btn = event.target;
+ btn.classList.add('testing');
+ btn.innerHTML = `⏳`;
+ try {
+ const reply = await getAIResponse(AI_CONFIG[roleId], "回复OK");
+ btn.classList.remove('testing');
+ if (reply) { btn.classList.add('success'); btn.innerHTML = `✅`; }
+ else { btn.classList.add('error'); btn.innerHTML = `❌`; }
+ setTimeout(() => { btn.classList.remove('success', 'error'); btn.innerHTML = `🔍`; }, 2000);
+ } catch (e) { btn.classList.remove('testing'); btn.classList.add('error'); btn.innerHTML = `❌`; setTimeout(() => { btn.classList.remove('error'); btn.innerHTML = `🔍`; }, 2000); }
+ }
+
+ function buildPrompt(topic, lastSpeaker) {
+ let context = "";
+ if (allFilesData.length > 0) {
+ context = "\n【参考文件】：\n" + allFilesData.map(f => `\n=== ${f.name} ===\n${f.content.substring(0, 2000)}`).join("\n") + "\n";
+ }
+ if (lastSpeaker) {
+ return `你是${config.name}，担任${config.role}，职责是：${config.duty}
+
+${context}
+【讨论主题】${topic}
+
+【之前的讨论】：
+${discussionHistory.map(h => `[${h.name}（${AI_CONFIG[h.roleId]?.role}）]：${h.content}`).join('\n\n')}
+
+【上一轮 ${lastSpeaker.name}（${AI_CONFIG[lastSpeaker.roleId]?.role}）说】：
+"${lastSpeaker.content}"
+
+作为${config.role}，从你的职责"${config.duty}"出发，回应${lastSpeaker.name}的观点。
+- 同意或反驳，给出理由
+- 补充你这个角色的专业见解
+- 提出具体建议
+
+用第一人称"我认为"、"作为${config.role}我觉得"发言。1500字以内，要有深度！`;
+ } else {
+ return `你是${config.name}，担任${config.role}，职责是：${config.duty}
+
+${context}
+【讨论主题】${topic}
+
+作为${config.role}，从你的职责"${config.duty}"出发发表观点：
+1. 从你的专业角度看这个话题
+2. 你认为的关键问题
+3. 你的建议和方案
+
+用第一人称发言。1500字以内，要有深度！`;
+ }
+ }
+
+ async function startDiscussion() {
+ const topic = document.getElementById('topicInput').value.trim();
+ if (!topic) { alert("请输入讨论主题！"); return; }
+ if (isRunning) return;
+ discussionHistory = [];
+ isRunning = true;
+ startBtn.disabled = true;
+ startBtn.innerHTML = "⏳ 讨论中...";
+ const fileInfo = allFilesData.length > 0 ? `\n参考 ${allFilesData.length} 个文件` : '';
+ addMessage("系统", `🚀 主题：${topic}${fileInfo}\n5位专家参与讨论`, "think");
+ for (let i = 0; i < parseInt(document.getElementById('roundSelect').value); i++) {
+ if (!isRunning) break;
+ currentRound = i + 1;
+ const roleId = (i % 5) + 1;
+ const lastSpeaker = discussionHistory.length > 0 ? discussionHistory[discussionHistory.length - 1] : null;
+ await startSpeak(roleId, topic, lastSpeaker);
+ await sleep(4000);
+ }
+ if (isRunning) {
+ tableCenter.innerHTML = "🔔 总结";
+ addMessage("系统", `讨论完成！共${discussionHistory.length}轮`, "think");
+ }
+ isRunning = false;
+ startBtn.disabled = false;
+ startBtn.innerHTML = "🚀 开始讨论";
+ }
+
+ function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+ async function startSpeak(roleId, topic, lastSpeaker) {
+ if (currentSpeaker) currentSpeaker.classList.remove('speaking');
+ const avatar = document.querySelector(`.ai${roleId}`);
+ currentSpeaker = avatar;
+ avatar.classList.add('speaking');
+ config = AI_CONFIG[roleId];
+ tableCenter.innerHTML = `${config.name}<br>${config.role}`;
+ try {
+ const reply = await getAIResponse(config, buildPrompt(topic, lastSpeaker));
+ if (reply) {
+ discussionHistory.push({ speaker: config.name, role: config.role, roleId, content: reply });
+ addMessage(`${config.name}（${config.role}）`, reply, "speak");
+ } else { addMessage(config.name, "失败", "speak"); }
+ } catch (e) { addMessage(config.name, "超时", "speak"); }
+ avatar.classList.remove('speaking');
+ }
+
+ function addMessage(name, text, type) {
+ const div = document.createElement('div');
+ div.className = `message ${type}`;
+ div.innerHTML = `<div class="ai-tag">${name}</div>${text}`;
+ chatBox.appendChild(div);
+ chatBox.scrollTop = chatBox.scrollHeight;
+ }
+
+ function clearChat() { discussionHistory = []; chatBox.innerHTML = ''; stopAll(); addMessage("系统", "已清空", "think"); }
+ function stopAll() {
+ isRunning = false;
+ startBtn.disabled = false;
+ startBtn.innerHTML = "🚀 开始讨论";
+ avatars.forEach(a => a.classList.remove('speaking'));
+ if (currentSpeaker) currentSpeaker.classList.remove('speaking');
+ tableCenter.innerHTML = "AI圆桌讨论<br>等待开始";
+ }
+
+ avatars.forEach(avatar => {
+ avatar.addEventListener('click', () => {
+ if (isRunning) return;
+ stopAll();
+ const topic = document.getElementById('topicInput').value.trim() || "项目分析";
+ const lastSpeaker = discussionHistory.length > 0 ? discussionHistory[discussionHistory.length - 1] : null;
+ startSpeak(parseInt(avatar.dataset.role), topic, lastSpeaker);
+ });
+ });
+
+ window.onload = () => { addMessage("系统", "欢迎！1.加载文件 2.输入任务 3.开始讨论", "think"); };
+ </script>
+</body>
+</html>
